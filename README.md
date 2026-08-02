@@ -49,3 +49,8 @@ A study timing application for tracking focused study sessions, visualizing time
 - [ ] Regression tests exist for any bug fixed during development
 - [ ] Reasonable test coverage threshold is defined and enforced (e.g. via CI) before merging changes
 
+# Contributing
+
+- Work happens on feature branches; open a pull request into `main` rather than committing directly.
+- A repository ruleset on `main` blocks direct pushes and force-pushes, and automatically requests a **GitHub Copilot code review** on every pull request — wait for that feedback and address it before merging.
+- Merge once the PR is in good shape; `merge`, `squash`, and `rebase` are all allowed.
