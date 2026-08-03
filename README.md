@@ -4,13 +4,13 @@ A study timing application for tracking focused study sessions, visualizing time
 
 # Features
 
-# General Features
+### General Features
 
 - **Study session tracking** — start, stop, pause, and log study sessions over time
 - **Timer + graph** — a running timer with a visual display and a graph of session history
 - **Notes** — jot notes tied to a session or study topic
 
-## Productivity techniques
+### Productivity techniques
 
 - **Interval/Pomodoro mode** — configurable work/break cycles that auto-advance the timer
 - **Focus mode** — distraction-free full-screen timer view that silences notifications
@@ -18,7 +18,7 @@ A study timing application for tracking focused study sessions, visualizing time
 - **Ambient sound presets** — optional background audio (white noise, lo-fi, rain) with volume control
 - **Task linking** — attach a to-do item to a session and mark it complete when the session ends
 
-## Motivation & gamification
+###  Motivation & gamification
 
 - **Streaks** — track consecutive days with at least one logged session
 - **Goals** — set target hours per day/week, per category or overall, with progress toward the goal
@@ -26,7 +26,7 @@ A study timing application for tracking focused study sessions, visualizing time
 - **Contribution-style heatmap** — GitHub-style calendar heatmap visualizing session frequency/intensity over time
 - **Points/levels** — lightweight leveling system tied to accumulated focused time
 
-## Integrations & sync
+### Integrations & sync
 
 - **Calendar sync** — reflect planned or completed sessions as events in Google Calendar
 - **Cloud sync / accounts** — persist sessions across devices instead of local-only storage
@@ -35,10 +35,10 @@ A study timing application for tracking focused study sessions, visualizing time
 - **Flexible categories/tags** — generalize "study subject" into freeform categories so the timer works for work, exercise, or other focus sessions, not just studying
 
 # Tech Stack
-## Frontend
+### Frontend
 - `NEXT.js`, `Shadcn`, `Reicon`
 
-## Backend
+### Backend
 - `NEXT.js`
 
 
