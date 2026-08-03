@@ -13,7 +13,7 @@ A study timing application for tracking focused study sessions, visualizing time
 ### Productivity techniques
 
 - **Interval/Pomodoro mode** — configurable work/break cycles that auto-advance the timer
-- **Focus mode** — distraction-free full-screen timer view that silences notifications
+- **Focus mode** — distraction-free timer view that silences notifications
 - **Session presets** — one-tap templates (e.g. 25/5 Pomodoro, 90/15 deep work) alongside fully custom durations
 - **Ambient sound presets** — optional background audio (white noise, lo-fi, rain) with volume control
 - **Task linking** — attach a to-do item to a session and mark it complete when the session ends
@@ -29,7 +29,7 @@ A study timing application for tracking focused study sessions, visualizing time
 ### Integrations & sync
 
 - **Calendar sync** — reflect planned or completed sessions as events in Google Calendar
-- **Cloud sync / accounts** — persist sessions across devices instead of local-only storage
+- **Cloud sync** — persist sessions across devices instead of local-only storage
 - **Export/import** — download session history as CSV/JSON for backup or external analysis
 - **Reminders/notifications** — browser or desktop notifications for scheduled sessions or streak upkeep
 - **Flexible categories/tags** — generalize "study subject" into freeform categories so the timer works for work, exercise, or other focus sessions, not just studying
