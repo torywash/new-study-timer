@@ -4,15 +4,41 @@ A study timing application for tracking focused study sessions, visualizing time
 
 # Features
 
+### General Features
+
 - **Study session tracking** — start, stop, pause, and log study sessions over time
 - **Timer + graph** — a running timer with a visual display and a graph of session history
 - **Notes** — jot notes tied to a session or study topic
 
+### Productivity techniques
+
+- **Interval/Pomodoro mode** — configurable work/break cycles that auto-advance the timer
+- **Focus mode** — distraction-free full-screen timer view that silences notifications
+- **Session presets** — one-tap templates (e.g. 25/5 Pomodoro, 90/15 deep work) alongside fully custom durations
+- **Ambient sound presets** — optional background audio (white noise, lo-fi, rain) with volume control
+- **Task linking** — attach a to-do item to a session and mark it complete when the session ends
+
+###  Motivation & gamification
+
+- **Streaks** — track consecutive days with at least one logged session
+- **Goals** — set target hours per day/week, per category or overall, with progress toward the goal
+- **Achievements/badges** — milestone rewards (first session, 7-day streak, 100 hours logged)
+- **Contribution-style heatmap** — GitHub-style calendar heatmap visualizing session frequency/intensity over time
+- **Points/levels** — lightweight leveling system tied to accumulated focused time
+
+### Integrations & sync
+
+- **Calendar sync** — reflect planned or completed sessions as events in Google Calendar
+- **Cloud sync / accounts** — persist sessions across devices instead of local-only storage
+- **Export/import** — download session history as CSV/JSON for backup or external analysis
+- **Reminders/notifications** — browser or desktop notifications for scheduled sessions or streak upkeep
+- **Flexible categories/tags** — generalize "study subject" into freeform categories so the timer works for work, exercise, or other focus sessions, not just studying
+
 # Tech Stack
-## Frontend
+### Frontend
 - `NEXT.js`, `Shadcn`, `Reicon`
 
-## Backend
+### Backend
 - `NEXT.js`
 
 
