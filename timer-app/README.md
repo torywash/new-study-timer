@@ -1,4 +1,6 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Timer App
+
+This is the Next.js frontend for the Study Timer project (see the repo root README). It was bootstrapped with `create-next-app`.
 
 ## Getting Started
 
