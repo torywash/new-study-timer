@@ -13,9 +13,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+// import { Separator } from "@/components/ui/separator";
 
-const SESSION_GOAL_SECONDS = 25 * 60;
+const SESSION_GOAL_SECONDS = 0.25 * 60; // 15 seconds for testing
 
 function formatTime(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
@@ -28,7 +28,7 @@ function formatTime(totalSeconds: number) {
 }
 
 export default function Home() {
-  const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [secondsElapsed, setSecondsElapsed] = useState(SESSION_GOAL_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
   const [sessionCount, setSessionCount] = useState(0);
   const [isDark, setIsDark] = useState(false);
@@ -43,6 +43,7 @@ export default function Home() {
     setIsDark(document.documentElement.classList.contains("dark"));
   }, []);
 
+  // TODO: Move this to settings tab
   const toggleTheme = () => {
     const next = !isDark;
     setIsDark(next);
@@ -53,7 +54,13 @@ export default function Home() {
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
-        setSecondsElapsed((prev) => prev + 1);
+        setSecondsElapsed((prev) => {
+          if (prev <= 1) {
+            setIsRunning(false);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
     }
 
@@ -64,14 +71,14 @@ export default function Home() {
 
   const handleReset = () => {
     setIsRunning(false);
-    if (secondsElapsed > 0) {
+    if (secondsElapsed < SESSION_GOAL_SECONDS) {
       setSessionCount((prev) => prev + 1);
     }
-    setSecondsElapsed(0);
+    setSecondsElapsed(SESSION_GOAL_SECONDS);
   };
 
   const progressValue = Math.min(
-    (secondsElapsed / SESSION_GOAL_SECONDS) * 100,
+    ((SESSION_GOAL_SECONDS - secondsElapsed) / SESSION_GOAL_SECONDS) * 100,
     100
   );
 
@@ -109,7 +116,6 @@ export default function Home() {
 
             <Progress value={progressValue} className="w-full" />
 
-            <Separator />
 
             <Badge variant="outline">Session {sessionCount}</Badge>
           </CardContent>
@@ -124,6 +130,9 @@ export default function Home() {
             )}
             <Button variant="outline" onClick={handleReset}>
               Reset
+            </Button>
+            <Button variant="destructive" onClick={() => setSessionCount(0)}>
+              Reset Sessions
             </Button>
           </CardFooter>
         </Card>
