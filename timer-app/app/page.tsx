@@ -31,12 +31,17 @@ export default function Home() {
   const [secondsElapsed, setSecondsElapsed] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [sessionCount, setSessionCount] = useState(0);
-  const [isDark, setIsDark] = useState(
-    () =>
-      typeof document !== "undefined" &&
-      document.documentElement.classList.contains("dark")
-  );
+  const [isDark, setIsDark] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    // The pre-hydration script in layout.tsx may have already set the
+    // "dark" class before React mounts; this syncs state to match it.
+    // Server and first client render both default to false, so this
+    // corrects the icon post-mount without causing a hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsDark(document.documentElement.classList.contains("dark"));
+  }, []);
 
   const toggleTheme = () => {
     const next = !isDark;
@@ -83,7 +88,6 @@ export default function Home() {
             size="icon"
             aria-label="Toggle dark mode"
             onClick={toggleTheme}
-            suppressHydrationWarning
           >
             {isDark ? <Sun /> : <Moon />}
           </Button>
