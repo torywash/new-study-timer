@@ -15,7 +15,12 @@ import {
 import { Progress } from "@/components/ui/progress";
 // import { Separator } from "@/components/ui/separator";
 
-const SESSION_GOAL_SECONDS = 0.25 * 60; // 15 seconds for testing
+const SESSION_GOAL_SECONDS = 0.05 * 60; // 3 seconds for testing; 25 * 60 for default prod
+let BREAK_GOAL_SECONDS = SESSION_GOAL_SECONDS / 5; // break interval is 1/5 of session interval
+
+if (BREAK_GOAL_SECONDS < 300) {
+  BREAK_GOAL_SECONDS = 3; // minimum break interval is 5 minutes; 3 for dev testing
+}
 
 function formatTime(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
@@ -33,6 +38,8 @@ export default function Home() {
   const [sessionCount, setSessionCount] = useState(0);
   const [isDark, setIsDark] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isBreak, setIsBreak] = useState(false);
 
   useEffect(() => {
     // The pre-hydration script in layout.tsx may have already set the
@@ -52,15 +59,13 @@ export default function Home() {
   };
 
   useEffect(() => {
+    audioRef.current = new Audio("/sounds/time_finish.mp3");
+  }, []);
+
+  useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
-        setSecondsElapsed((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            return 0;
-          }
-          return prev - 1;
-        });
+        setSecondsElapsed((prev) => (prev > 0 ? prev - 1 : prev));
       }, 1000);
     }
 
@@ -69,16 +74,28 @@ export default function Home() {
     };
   }, [isRunning]);
 
-  const handleReset = () => {
+  useEffect(() => {
+    if (!isRunning || secondsElapsed !== 0) return;
+
     setIsRunning(false);
-    if (secondsElapsed < SESSION_GOAL_SECONDS) {
-      setSessionCount((prev) => prev + 1);
+    if (isBreak) {
+      // a break just finished, so a full study/break cycle is complete
+      setSessionCount((count) => count + 1);
     }
-    setSecondsElapsed(SESSION_GOAL_SECONDS);
+    setIsBreak((prev) => !prev);
+    audioRef.current?.play();
+  }, [secondsElapsed, isRunning, isBreak]);
+
+  const handleStart = () => {
+    if (secondsElapsed === 0) {
+      setSecondsElapsed(isBreak ? BREAK_GOAL_SECONDS : SESSION_GOAL_SECONDS);
+    }
+    setIsRunning(true);
   };
 
+  const goalSeconds = isBreak ? BREAK_GOAL_SECONDS : SESSION_GOAL_SECONDS;
   const progressValue = Math.min(
-    ((SESSION_GOAL_SECONDS - secondsElapsed) / SESSION_GOAL_SECONDS) * 100,
+    ((goalSeconds - secondsElapsed) / goalSeconds) * 100,
     100
   );
 
@@ -105,7 +122,7 @@ export default function Home() {
         <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle className="text-center text-base text-muted-foreground">
-              Focus Session
+              {isBreak ? "Break Time" : "Focus Session"}
             </CardTitle>
           </CardHeader>
 
@@ -126,11 +143,10 @@ export default function Home() {
                 Pause
               </Button>
             ) : (
-              <Button onClick={() => setIsRunning(true)}>Start</Button>
+              <Button onClick={handleStart}>
+                {isBreak ? "Start Break" : "Start Focus"}
+              </Button>
             )}
-            <Button variant="outline" onClick={handleReset}>
-              Reset
-            </Button>
             <Button variant="destructive" onClick={() => setSessionCount(0)}>
               Reset Sessions
             </Button>
