@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -21,16 +21,20 @@ export function NavTabs() {
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
         return (
-          <Button
+          <Link
             key={item.href}
-            variant={isActive ? "secondary" : "ghost"}
-            size="sm"
-            render={<Link href={item.href} />}
-            nativeButton={false}
-            className={cn(isActive && "pointer-events-none")}
+            href={item.href}
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+              buttonVariants({
+                variant: isActive ? "secondary" : "ghost",
+                size: "sm",
+              }),
+              isActive && "pointer-events-none"
+            )}
           >
             {item.label}
-          </Button>
+          </Link>
         );
       })}
     </nav>

@@ -1,8 +1,13 @@
 "use client";
 
-import { X } from "lucide-react";
-import { useState } from "react";
+import { Pencil, Plus, X } from "lucide-react";
+import {
+  useState,
+  type FormEvent,
+  type ReactElement,
+} from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,24 +16,131 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useTasks } from "@/hooks/use-tasks";
 
-function formatDate(timestamp: number) {
-  return new Date(timestamp).toLocaleDateString(undefined, {
+function formatDueDate(dueDate: string) {
+  if (!dueDate) return null;
+  // dueDate is stored as yyyy-mm-dd; parse as local date to avoid a UTC off-by-one
+  const [year, month, day] = dueDate.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
   });
 }
 
-export default function TasksPage() {
-  const { tasks, addTask, toggleTask, updateDescription, removeTask } =
-    useTasks();
-  const [newTaskText, setNewTaskText] = useState("");
+function TaskFormDialog({
+  trigger,
+  heading,
+  submitLabel,
+  initialTitle = "",
+  initialDescription = "",
+  initialDueDate = "",
+  onSubmit,
+}: {
+  trigger: ReactElement;
+  heading: string;
+  submitLabel: string;
+  initialTitle?: string;
+  initialDescription?: string;
+  initialDueDate?: string;
+  onSubmit: (values: {
+    text: string;
+    description: string;
+    dueDate: string;
+  }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(initialTitle);
+  const [description, setDescription] = useState(initialDescription);
+  const [dueDate, setDueDate] = useState(initialDueDate);
 
-  const handleAddTask = () => {
-    addTask(newTaskText);
-    setNewTaskText("");
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) {
+      setTitle(initialTitle);
+      setDescription(initialDescription);
+      setDueDate(initialDueDate);
+    }
   };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    onSubmit({ text: title, description, dueDate });
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger render={trigger} />
+
+      <DialogContent>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <DialogHeader>
+            <DialogTitle>{heading}</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="task-title">Title</Label>
+            <Input
+              id="task-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Task title"
+              autoFocus
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="task-description">Description</Label>
+            <Textarea
+              id="task-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Add a description..."
+              rows={3}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="task-due-date">Timeline</Label>
+            <Input
+              id="task-due-date"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button type="submit" disabled={!title.trim()}>
+              {submitLabel}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default function TasksPage() {
+  const { tasks, addTask, toggleTask, updateTask, removeTask } = useTasks();
+  const [search, setSearch] = useState("");
+
+  const filteredTasks = tasks.filter((task) =>
+    task.text.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <main className="flex flex-1 flex-col items-center gap-4 p-6">
@@ -41,45 +153,47 @@ export default function TasksPage() {
 
         <CardContent className="flex flex-col gap-4">
           <div className="flex gap-2">
-            <input
-              type="text"
-              value={newTaskText}
-              onChange={(e) => setNewTaskText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAddTask();
-              }}
-              placeholder="Add a task..."
-              className="flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search tasks..."
+              className="flex-1"
             />
-            <Button onClick={handleAddTask}>Add</Button>
+
+            <TaskFormDialog
+              trigger={
+                <Button>
+                  <Plus className="size-4" />
+                  Add Task
+                </Button>
+              }
+              heading="New Task"
+              submitLabel="Add Task"
+              onSubmit={(values) => addTask(values)}
+            />
           </div>
 
-          {tasks.length === 0 ? (
+          {filteredTasks.length === 0 ? (
             <p className="p-4 text-center text-sm text-muted-foreground">
-              No tasks yet.
+              {tasks.length === 0
+                ? "No tasks yet."
+                : "No tasks match your search."}
             </p>
           ) : (
-            <ol className="relative flex flex-col gap-6 border-l border-border pl-6">
-              {tasks.map((task) => (
-                <li key={task.id} className="relative">
-                  <span
-                    className={
-                      task.done
-                        ? "absolute top-1 -left-[1.6rem] size-2.5 rounded-full bg-primary"
-                        : "absolute top-1 -left-[1.6rem] size-2.5 rounded-full bg-muted-foreground/40"
-                    }
-                  />
+            <div className="flex flex-col gap-3">
+              {filteredTasks.map((task) => (
+                <Card key={task.id} size="sm">
+                  <CardContent className="flex items-start gap-3">
+                    <Checkbox
+                      className="mt-1"
+                      checked={task.done}
+                      onCheckedChange={(checked) =>
+                        toggleTask(task.id, checked)
+                      }
+                    />
 
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        className="mt-1"
-                        checked={task.done}
-                        onCheckedChange={(checked) =>
-                          toggleTask(task.id, checked)
-                        }
-                      />
-                      <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-1 flex-col gap-1">
+                      <div className="flex items-center justify-between gap-2">
                         <span
                           className={
                             task.done
@@ -89,11 +203,37 @@ export default function TasksPage() {
                         >
                           {task.text}
                         </span>
-                        <span className="text-xs text-muted-foreground">
-                          Added {formatDate(task.createdAt)}
-                        </span>
+                        {formatDueDate(task.dueDate) && (
+                          <Badge variant="outline">
+                            {formatDueDate(task.dueDate)}
+                          </Badge>
+                        )}
                       </div>
+                      {task.description && (
+                        <p className="text-sm text-muted-foreground">
+                          {task.description}
+                        </p>
+                      )}
                     </div>
+
+                    <TaskFormDialog
+                      trigger={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Edit task"
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                      }
+                      heading="Edit Task"
+                      submitLabel="Save Changes"
+                      initialTitle={task.text}
+                      initialDescription={task.description}
+                      initialDueDate={task.dueDate}
+                      onSubmit={(values) => updateTask(task.id, values)}
+                    />
+
                     <Button
                       variant="ghost"
                       size="icon"
@@ -102,20 +242,10 @@ export default function TasksPage() {
                     >
                       <X className="size-4" />
                     </Button>
-                  </div>
-
-                  <textarea
-                    value={task.description}
-                    onChange={(e) =>
-                      updateDescription(task.id, e.target.value)
-                    }
-                    placeholder="Add a description..."
-                    rows={2}
-                    className="mt-2 w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                  />
-                </li>
+                  </CardContent>
+                </Card>
               ))}
-            </ol>
+            </div>
           )}
         </CardContent>
       </Card>

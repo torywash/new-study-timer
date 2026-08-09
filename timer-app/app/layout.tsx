@@ -4,7 +4,9 @@ import Script from "next/script";
 import "./globals.css";
 
 import { NavTabs } from "@/components/nav-tabs";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { TasksProvider } from "@/hooks/use-tasks";
+import { StudyStatsProvider } from "@/hooks/use-study-stats";
+import { TimerSettingsProvider } from "@/hooks/use-timer-settings";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
@@ -45,14 +47,19 @@ export default function RootLayout({
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: themeInitScript }}
         />
-        <header className="flex items-center justify-between border-b px-6 py-4">
-          <span className="text-lg font-semibold">Study Timer</span>
-          <div className="flex items-center gap-3">
-            <NavTabs />
-            <ThemeToggle />
-          </div>
-        </header>
-        {children}
+        <StudyStatsProvider>
+          <TasksProvider>
+            <TimerSettingsProvider>
+              <header className="flex items-center justify-between border-b px-6 py-4">
+                <span className="text-lg font-semibold">Study Timer</span>
+                <div className="flex items-center gap-3">
+                  <NavTabs />
+                </div>
+              </header>
+              {children}
+            </TimerSettingsProvider>
+          </TasksProvider>
+        </StudyStatsProvider>
       </body>
     </html>
   );

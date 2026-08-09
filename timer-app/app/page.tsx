@@ -16,14 +16,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTasks } from "@/hooks/use-tasks";
+import { useStudyStats } from "@/hooks/use-study-stats";
+import { useTimerSettings } from "@/hooks/use-timer-settings";
+import { useAmbientPlayer } from "@/hooks/use-ambient-player";
 // import { Separator } from "@/components/ui/separator";
-
-const SESSION_GOAL_SECONDS = 0.05 * 60; // 3 seconds for testing; 25 * 60 for default prod
-let BREAK_GOAL_SECONDS = SESSION_GOAL_SECONDS / 5; // break interval is 1/5 of session interval
-
-if (BREAK_GOAL_SECONDS < 300) {
-  BREAK_GOAL_SECONDS = 3; // minimum break interval is 5 minutes; 3 for dev testing
-}
 
 function formatTime(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
@@ -36,7 +32,12 @@ function formatTime(totalSeconds: number) {
 }
 
 export default function Home() {
-  const [secondsElapsed, setSecondsElapsed] = useState(SESSION_GOAL_SECONDS);
+  const { focusMinutes, breakMinutes, soundEnabled, volume } =
+    useTimerSettings();
+  const sessionGoalSeconds = focusMinutes * 60;
+  const breakGoalSeconds = breakMinutes * 60;
+
+  const [secondsElapsed, setSecondsElapsed] = useState(sessionGoalSeconds);
   const [isRunning, setIsRunning] = useState(false);
   const [sessionCount, setSessionCount] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -44,14 +45,47 @@ export default function Home() {
   const [isBreak, setIsBreak] = useState(false);
   const { tasks, addTask, toggleTask, removeTask, clearTasks } = useTasks();
   const [newTaskText, setNewTaskText] = useState("");
+  const { addStudySeconds } = useStudyStats();
+  const secondsElapsedRef = useRef(secondsElapsed);
+
+  useEffect(() => {
+    secondsElapsedRef.current = secondsElapsed;
+  }, [secondsElapsed]);
+
+  // Resync the displayed countdown when the Focus/Break duration settings
+  // change (loaded from localStorage after mount, or edited on the Settings
+  // page) — but never while a session is actively counting down. isRunning
+  // and isBreak are read via closure and deliberately left out of the deps
+  // array so this only re-fires when the settings themselves change, not on
+  // every start/pause/completion.
+  useEffect(() => {
+    if (!isRunning) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSecondsElapsed(isBreak ? breakGoalSeconds : sessionGoalSeconds);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionGoalSeconds, breakGoalSeconds]);
 
   useEffect(() => {
     audioRef.current = new Audio("/sounds/time_finish.mp3");
   }, []);
 
   useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume / 100;
+  }, [volume]);
+
+  useAmbientPlayer(isRunning);
+
+  useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
+        // addStudySeconds updates a different component's (StudyStatsProvider)
+        // state, so it must not be called from inside setSecondsElapsed's
+        // updater — React can invoke updaters more than once, which would
+        // double-count. Read the latest value from a ref instead.
+        if (secondsElapsedRef.current > 0 && !isBreak) {
+          addStudySeconds(1);
+        }
         setSecondsElapsed((prev) => (prev > 0 ? prev - 1 : prev));
       }, 1000);
     }
@@ -59,7 +93,7 @@ export default function Home() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isRunning]);
+  }, [isRunning, isBreak, addStudySeconds]);
 
   useEffect(() => {
     if (!isRunning || secondsElapsed !== 0) return;
@@ -70,22 +104,22 @@ export default function Home() {
       setSessionCount((count) => count + 1);
     }
     setIsBreak((prev) => !prev);
-    audioRef.current?.play();
-  }, [secondsElapsed, isRunning, isBreak]);
+    if (soundEnabled) audioRef.current?.play();
+  }, [secondsElapsed, isRunning, isBreak, soundEnabled]);
 
   const handleStart = () => {
     if (secondsElapsed === 0) {
-      setSecondsElapsed(isBreak ? BREAK_GOAL_SECONDS : SESSION_GOAL_SECONDS);
+      setSecondsElapsed(isBreak ? breakGoalSeconds : sessionGoalSeconds);
     }
     setIsRunning(true);
   };
 
   const handleAddTask = () => {
-    addTask(newTaskText);
+    addTask({ text: newTaskText });
     setNewTaskText("");
   };
 
-  const goalSeconds = isBreak ? BREAK_GOAL_SECONDS : SESSION_GOAL_SECONDS;
+  const goalSeconds = isBreak ? breakGoalSeconds : sessionGoalSeconds;
   const progressValue = Math.min(
     ((goalSeconds - secondsElapsed) / goalSeconds) * 100,
     100

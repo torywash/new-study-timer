@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle() {
+export function ThemeToggle({ id }: { id?: string }) {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -26,6 +26,7 @@ export function ThemeToggle() {
 
   return (
     <Button
+      id={id}
       variant="ghost"
       size="icon"
       aria-label="Toggle dark mode"
