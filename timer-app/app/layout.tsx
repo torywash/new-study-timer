@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
+import { ViewTransition } from "react";
 import "./globals.css";
 
 import { NavTabs } from "@/components/nav-tabs";
@@ -56,7 +57,7 @@ export default function RootLayout({
                   <NavTabs />
                 </div>
               </header>
-              {children}
+              <ViewTransition>{children}</ViewTransition>
             </TimerSettingsProvider>
           </TasksProvider>
         </StudyStatsProvider>

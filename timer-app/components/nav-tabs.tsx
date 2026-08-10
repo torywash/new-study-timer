@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,24 +14,55 @@ const NAV_ITEMS = [
   { href: "/settings", label: "Settings" },
 ];
 
+type IndicatorRect = { left: number; width: number };
+
 export function NavTabs() {
   const pathname = usePathname();
+  const containerRef = useRef<HTMLElement>(null);
+  const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+  const [indicator, setIndicator] = useState<IndicatorRect | null>(null);
+
+  // Measure the active tab's own position/width and slide a plain
+  // background pill to match — a horizontal-only translate/width
+  // transition, rather than relying on the browser's automatic view
+  // transition group morph (which interpolates position and size together
+  // and can look like it's scaling in diagonally when tab widths differ).
+  useEffect(() => {
+    const activeLink = linkRefs.current[pathname];
+    const container = containerRef.current;
+    if (!activeLink || !container) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const activeRect = activeLink.getBoundingClientRect();
+    setIndicator({
+      left: activeRect.left - containerRect.left,
+      width: activeRect.width,
+    });
+  }, [pathname]);
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav ref={containerRef} className="relative flex items-center gap-1">
+      {indicator && (
+        <span
+          aria-hidden="true"
+          className="absolute inset-y-0 z-0 rounded-lg bg-secondary transition-[left,width] duration-200 ease-out"
+          style={{ left: indicator.left, width: indicator.width }}
+        />
+      )}
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
         return (
           <Link
             key={item.href}
             href={item.href}
+            ref={(el) => {
+              linkRefs.current[item.href] = el;
+            }}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              buttonVariants({
-                variant: isActive ? "secondary" : "ghost",
-                size: "sm",
-              }),
-              isActive && "pointer-events-none"
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "relative z-10",
+              isActive && "text-secondary-foreground pointer-events-none"
             )}
           >
             {item.label}
