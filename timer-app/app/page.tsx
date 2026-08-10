@@ -39,13 +39,8 @@ function formatTime(totalSeconds: number) {
 export default function Home() {
   const { focusMinutes, breakMinutes, soundEnabled, notificationVolume } =
     useTimerSettings();
-  // TEMP TESTING OVERRIDE — bypasses Settings entirely (5-60 min floor and
-  // the break = focus/5 derivation) for a fast 3s/3s cycle. Revert to the
-  // two lines below once done testing:
-  // const sessionGoalSeconds = focusMinutes * 60;
-  // const breakGoalSeconds = breakMinutes * 60;
-  const sessionGoalSeconds = 3;
-  const breakGoalSeconds = 3;
+  const sessionGoalSeconds = focusMinutes * 60;
+  const breakGoalSeconds = breakMinutes * 60;
 
   const [secondsElapsed, setSecondsElapsed] = useState(sessionGoalSeconds);
   const [isRunning, setIsRunning] = useState(false);
