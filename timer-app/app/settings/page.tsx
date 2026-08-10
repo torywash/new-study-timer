@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { toast } from "@/components/ui/toast";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   useTimerSettings,
@@ -245,7 +246,13 @@ export default function SettingsPage() {
               minutes={focusMinutes}
               min={MIN_FOCUS_MINUTES}
               max={MAX_FOCUS_MINUTES}
-              onCommit={setFocusMinutes}
+              onCommit={(minutes) => {
+                setFocusMinutes(minutes);
+                toast.add({
+                  title: "Settings updated",
+                  description: `Focus Duration set to ${minutes} minutes.`,
+                });
+              }}
             />
             <p className="text-sm text-muted-foreground">
               Break Duration: {breakMinutesLabel} minutes (auto-calculated as
@@ -274,6 +281,13 @@ export default function SettingsPage() {
                 onValueChange={(next) =>
                   setVolume(Array.isArray(next) ? next[0] : next)
                 }
+                onValueCommitted={(next) => {
+                  const value = Array.isArray(next) ? next[0] : next;
+                  toast.add({
+                    title: "Settings updated",
+                    description: `Volume set to ${value}%.`,
+                  });
+                }}
                 min={0}
                 max={100}
                 step={1}
@@ -287,7 +301,13 @@ export default function SettingsPage() {
               <Checkbox
                 id="sound-enabled"
                 checked={soundEnabled}
-                onCheckedChange={setSoundEnabled}
+                onCheckedChange={(checked) => {
+                  setSoundEnabled(checked);
+                  toast.add({
+                    title: "Settings updated",
+                    description: `Session-end sound ${checked ? "enabled" : "disabled"}.`,
+                  });
+                }}
               />
             </div>
 
@@ -296,7 +316,13 @@ export default function SettingsPage() {
               <Checkbox
                 id="ambient-enabled"
                 checked={ambientEnabled}
-                onCheckedChange={setAmbientEnabled}
+                onCheckedChange={(checked) => {
+                  setAmbientEnabled(checked);
+                  toast.add({
+                    title: "Settings updated",
+                    description: `Ambient sound ${checked ? "enabled" : "disabled"}.`,
+                  });
+                }}
               />
             </div>
 
@@ -306,9 +332,15 @@ export default function SettingsPage() {
                   <Label htmlFor="ambient-mode">Source</Label>
                   <Select
                     value={ambientMode}
-                    onValueChange={(value) =>
-                      setAmbientMode(value as AmbientMode)
-                    }
+                    onValueChange={(value) => {
+                      setAmbientMode(value as AmbientMode);
+                      toast.add({
+                        title: "Settings updated",
+                        description: `Ambient source set to ${
+                          value === "file" ? "My Files" : "Generated Noise"
+                        }.`,
+                      });
+                    }}
                   >
                     <SelectTrigger id="ambient-mode" className="w-full">
                       <SelectValue />
@@ -327,9 +359,13 @@ export default function SettingsPage() {
                     <Label htmlFor="noise-type">Noise Type</Label>
                     <Select
                       value={noiseType}
-                      onValueChange={(value) =>
-                        setNoiseType(value as NoiseType)
-                      }
+                      onValueChange={(value) => {
+                        setNoiseType(value as NoiseType);
+                        toast.add({
+                          title: "Settings updated",
+                          description: `Noise type set to ${NOISE_LABELS[value as NoiseType]}.`,
+                        });
+                      }}
                     >
                       <SelectTrigger id="noise-type" className="w-full">
                         <SelectValue />
@@ -348,7 +384,13 @@ export default function SettingsPage() {
                 ) : (
                   <AmbientFilePicker
                     ambientFile={ambientFile}
-                    onSelectFile={setAmbientFile}
+                    onSelectFile={(file) => {
+                      setAmbientFile(file);
+                      toast.add({
+                        title: "Settings updated",
+                        description: `Ambient file set to ${file.name}.`,
+                      });
+                    }}
                   />
                 )}
               </div>

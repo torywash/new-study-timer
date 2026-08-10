@@ -4,6 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 
 export function ThemeToggle({ id }: { id?: string }) {
   const [isDark, setIsDark] = useState(false);
@@ -22,6 +23,10 @@ export function ThemeToggle({ id }: { id?: string }) {
     setIsDark(next);
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
+    toast.add({
+      title: "Settings updated",
+      description: `Dark mode ${next ? "enabled" : "disabled"}.`,
+    });
   };
 
   return (

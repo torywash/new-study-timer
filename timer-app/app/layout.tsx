@@ -5,6 +5,8 @@ import { ViewTransition } from "react";
 import "./globals.css";
 
 import { NavTabs } from "@/components/nav-tabs";
+import { GoalCompletionWatcher } from "@/components/goal-completion-watcher";
+import { Toaster } from "@/components/ui/toast";
 import { TasksProvider } from "@/hooks/use-tasks";
 import { StudyStatsProvider } from "@/hooks/use-study-stats";
 import { TimerSettingsProvider } from "@/hooks/use-timer-settings";
@@ -51,13 +53,16 @@ export default function RootLayout({
         <StudyStatsProvider>
           <TasksProvider>
             <TimerSettingsProvider>
-              <header className="flex items-center justify-between border-b px-6 py-4">
-                <span className="text-lg font-semibold">Study Timer</span>
-                <div className="flex items-center gap-3">
-                  <NavTabs />
-                </div>
-              </header>
-              <ViewTransition>{children}</ViewTransition>
+              <Toaster>
+                <GoalCompletionWatcher />
+                <header className="flex items-center justify-between border-b px-6 py-4">
+                  <span className="text-lg font-semibold">Study Timer</span>
+                  <div className="flex items-center gap-3">
+                    <NavTabs />
+                  </div>
+                </header>
+                <ViewTransition>{children}</ViewTransition>
+              </Toaster>
             </TimerSettingsProvider>
           </TasksProvider>
         </StudyStatsProvider>
