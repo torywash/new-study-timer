@@ -162,7 +162,7 @@ export default function Home() {
         className={cn(
           "flex w-full max-w-4xl gap-4 sm:gap-6",
           isRow
-            ? "flex-row items-start justify-center"
+            ? "flex-row items-stretch justify-center"
             : "flex-col items-center",
         )}
       >
@@ -179,7 +179,7 @@ export default function Home() {
             </Badge>
           </CardHeader>
 
-          <CardContent className="flex flex-col items-center gap-6">
+          <CardContent className="flex flex-1 flex-col items-center justify-center gap-6">
             <span className="font-mono text-5xl font-semibold tabular-nums tracking-tight sm:text-6xl">
               {formatTime(secondsElapsed)}
             </span>
@@ -221,7 +221,7 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="flex flex-col gap-4">
+          <CardContent className="flex flex-1 flex-col gap-4">
             <div className="flex gap-2">
               <input
                 type="text"
