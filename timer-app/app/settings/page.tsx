@@ -23,6 +23,8 @@ import { Slider } from "@/components/ui/slider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   useTimerSettings,
+  MIN_FOCUS_MINUTES,
+  MAX_FOCUS_MINUTES,
   type AmbientMode,
   type NoiseType,
 } from "@/hooks/use-timer-settings";
@@ -31,11 +33,15 @@ function DurationField({
   id,
   label,
   minutes,
+  min,
+  max,
   onCommit,
 }: {
   id: string;
   label: string;
   minutes: number;
+  min: number;
+  max: number;
   onCommit: (minutes: number) => void;
 }) {
   const [text, setText] = useState(String(minutes));
@@ -43,7 +49,12 @@ function DurationField({
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
     const parsed = Number(e.target.value);
-    if (e.target.value.trim() !== "" && Number.isFinite(parsed) && parsed > 0) {
+    if (
+      e.target.value.trim() !== "" &&
+      Number.isFinite(parsed) &&
+      parsed >= min &&
+      parsed <= max
+    ) {
       onCommit(parsed);
     }
   };
@@ -56,11 +67,14 @@ function DurationField({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>
+        {label} ({min}-{max})
+      </Label>
       <Input
         id={id}
         type="number"
-        min="1"
+        min={min}
+        max={max}
         step="1"
         value={text}
         onChange={handleChange}
@@ -227,8 +241,10 @@ export default function SettingsPage() {
           <CardContent className="flex flex-col gap-4">
             <DurationField
               id="focus-minutes"
-              label="Focus Duration (minutes)"
+              label="Focus Duration"
               minutes={focusMinutes}
+              min={MIN_FOCUS_MINUTES}
+              max={MAX_FOCUS_MINUTES}
               onCommit={setFocusMinutes}
             />
             <p className="text-sm text-muted-foreground">

@@ -15,6 +15,18 @@ const DEFAULT_FOCUS_MINUTES = 25;
 const BREAK_RATIO = 1 / 5;
 const DEFAULT_VOLUME = 50;
 
+export const MIN_FOCUS_MINUTES = 5;
+export const MAX_FOCUS_MINUTES = 60;
+
+// Raw linear gain (volume / 100 straight to 0-1) felt far too loud even at
+// low slider percentages, so the effective output is capped at half of full
+// scale — the 0-100 slider still reads as a normal percentage, this just
+// scales what it actually maps to in terms of audio gain/volume.
+const MAX_VOLUME_GAIN = 0.5;
+export function volumeToGain(volume: number): number {
+  return (volume / 100) * MAX_VOLUME_GAIN;
+}
+
 export type AmbientMode = "generated" | "file";
 export type NoiseType = "white" | "brown" | "pink";
 
@@ -69,7 +81,9 @@ export function TimerSettingsProvider({ children }: { children: ReactNode }) {
         };
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setFocusMinutesState(
-          typeof parsed.focusMinutes === "number" && parsed.focusMinutes > 0
+          typeof parsed.focusMinutes === "number" &&
+            parsed.focusMinutes >= MIN_FOCUS_MINUTES &&
+            parsed.focusMinutes <= MAX_FOCUS_MINUTES
             ? parsed.focusMinutes
             : DEFAULT_FOCUS_MINUTES
         );
@@ -119,7 +133,9 @@ export function TimerSettingsProvider({ children }: { children: ReactNode }) {
   }, [focusMinutes, soundEnabled, volume, ambientEnabled, ambientMode, noiseType]);
 
   const setFocusMinutes = (minutes: number) => {
-    if (minutes > 0) setFocusMinutesState(minutes);
+    if (minutes >= MIN_FOCUS_MINUTES && minutes <= MAX_FOCUS_MINUTES) {
+      setFocusMinutesState(minutes);
+    }
   };
 
   const setSoundEnabled = (enabled: boolean) => {

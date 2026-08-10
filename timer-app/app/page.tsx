@@ -17,7 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTasks } from "@/hooks/use-tasks";
 import { useStudyStats } from "@/hooks/use-study-stats";
-import { useTimerSettings } from "@/hooks/use-timer-settings";
+import { useTimerSettings, volumeToGain } from "@/hooks/use-timer-settings";
 import { useAmbientPlayer } from "@/hooks/use-ambient-player";
 // import { Separator } from "@/components/ui/separator";
 
@@ -71,7 +71,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume / 100;
+    if (audioRef.current) audioRef.current.volume = volumeToGain(volume);
   }, [volume]);
 
   useAmbientPlayer(isRunning);
