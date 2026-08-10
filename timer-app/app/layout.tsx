@@ -55,7 +55,10 @@ export default function RootLayout({
           <TasksProvider>
             <TimerSettingsProvider>
               <SessionLockProvider>
-                <Toaster timeout={5000}>
+                {/* timeout=0 disables the built-in auto-dismiss timer, which
+                    pauses on hover/window-blur — dismissal is instead
+                    driven by lib/notify.ts's plain, un-pausable setTimeout */}
+                <Toaster timeout={0}>
                   <GoalCompletionWatcher />
                   <header className="flex items-center justify-between border-b px-6 py-4">
                     <span className="text-lg font-semibold">Study Timer</span>

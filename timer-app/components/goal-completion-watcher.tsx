@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { toast } from "@/components/ui/toast";
+import { notify } from "@/lib/notify";
 import { useStudyStats } from "@/hooks/use-study-stats";
 
 // Renders nothing — lives in the persistent layout (alongside the
@@ -27,7 +27,7 @@ export function GoalCompletionWatcher() {
     const isComplete = totalHours >= goal.targetHours;
 
     if (wasCompleteRef.current !== null && isComplete && !wasCompleteRef.current) {
-      toast.add({
+      notify({
         title: "Goal complete",
         description: `You reached your "${goal.title}" goal of ${goal.targetHours} hours.`,
         type: "success",

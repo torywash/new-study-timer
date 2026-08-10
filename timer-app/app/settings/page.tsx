@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { toast } from "@/components/ui/toast";
+import { notify } from "@/lib/notify";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   useTimerSettings,
@@ -29,6 +29,10 @@ import {
   type AmbientMode,
   type NoiseType,
 } from "@/hooks/use-timer-settings";
+import {
+  playAmbientPreview,
+  playNotificationPreview,
+} from "@/lib/audio-preview";
 
 function DurationField({
   id,
@@ -228,7 +232,7 @@ function VolumeSlider({
         onValueCommitted={(next) => {
           const committed = Array.isArray(next) ? next[0] : next;
           onCommit(committed);
-          toast.add({
+          notify({
             title: "Settings updated",
             description: `${label} set to ${committed}%.`,
           });
@@ -293,7 +297,7 @@ export default function SettingsPage() {
               max={MAX_FOCUS_MINUTES}
               onCommit={(minutes) => {
                 setFocusMinutes(minutes);
-                toast.add({
+                notify({
                   title: "Settings updated",
                   description: `Focus Duration set to ${minutes} minutes.`,
                 });
@@ -317,7 +321,10 @@ export default function SettingsPage() {
               id="notification-volume-slider"
               label="Notification Volume"
               value={notificationVolume}
-              onCommit={setNotificationVolume}
+              onCommit={(next) => {
+                setNotificationVolume(next);
+                playNotificationPreview(next);
+              }}
             />
 
             <div className="flex items-center justify-between">
@@ -329,7 +336,7 @@ export default function SettingsPage() {
                 checked={soundEnabled}
                 onCheckedChange={(checked) => {
                   setSoundEnabled(checked);
-                  toast.add({
+                  notify({
                     title: "Settings updated",
                     description: `Session-end sound ${checked ? "enabled" : "disabled"}.`,
                   });
@@ -344,7 +351,7 @@ export default function SettingsPage() {
                 checked={ambientEnabled}
                 onCheckedChange={(checked) => {
                   setAmbientEnabled(checked);
-                  toast.add({
+                  notify({
                     title: "Settings updated",
                     description: `Ambient sound ${checked ? "enabled" : "disabled"}.`,
                   });
@@ -358,7 +365,10 @@ export default function SettingsPage() {
                   id="ambient-volume-slider"
                   label="Ambient Volume"
                   value={ambientVolume}
-                  onCommit={setAmbientVolume}
+                  onCommit={(next) => {
+                    setAmbientVolume(next);
+                    playAmbientPreview(ambientMode, noiseType, ambientFile, next);
+                  }}
                 />
 
                 <div className="flex flex-col gap-1.5">
@@ -367,7 +377,7 @@ export default function SettingsPage() {
                     value={ambientMode}
                     onValueChange={(value) => {
                       setAmbientMode(value as AmbientMode);
-                      toast.add({
+                      notify({
                         title: "Settings updated",
                         description: `Ambient source set to ${
                           value === "file" ? "My Files" : "Generated Noise"
@@ -394,7 +404,7 @@ export default function SettingsPage() {
                       value={noiseType}
                       onValueChange={(value) => {
                         setNoiseType(value as NoiseType);
-                        toast.add({
+                        notify({
                           title: "Settings updated",
                           description: `Noise type set to ${NOISE_LABELS[value as NoiseType]}.`,
                         });
@@ -419,7 +429,7 @@ export default function SettingsPage() {
                     ambientFile={ambientFile}
                     onSelectFile={(file) => {
                       setAmbientFile(file);
-                      toast.add({
+                      notify({
                         title: "Settings updated",
                         description: `Ambient file set to ${file.name}.`,
                       });

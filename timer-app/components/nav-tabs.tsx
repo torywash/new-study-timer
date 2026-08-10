@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
+import { notify } from "@/lib/notify";
 import { cn } from "@/lib/utils";
 import { useSessionLock } from "@/hooks/use-session-lock";
 
@@ -69,7 +69,7 @@ export function NavTabs() {
               }}
               className={cn(className, "cursor-not-allowed opacity-50")}
               onClick={() =>
-                toast.add({
+                notify({
                   title: "Tab locked",
                   description:
                     "Finish or pause your session to switch tabs.",

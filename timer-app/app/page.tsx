@@ -15,7 +15,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "@/components/ui/toast";
+import { notify } from "@/lib/notify";
 import { useTasks } from "@/hooks/use-tasks";
 import { useStudyStats } from "@/hooks/use-study-stats";
 import {
@@ -130,7 +130,7 @@ export default function Home() {
     }
     setIsBreak((prev) => !prev);
     if (soundEnabled) audioRef.current?.play();
-    toast.add({
+    notify({
       title: isBreak ? "Break complete" : "Focus session complete",
       description: isBreak
         ? "Time to start your next focus session."
