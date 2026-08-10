@@ -5,17 +5,14 @@ import { useState, type FormEvent } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useStudyStats, type StudyGoal } from "@/hooks/use-study-stats";
+import { useOverflowLayout } from "@/hooks/use-overflow-layout";
+import { cn } from "@/lib/utils";
 
 const MILESTONE_COUNT = 40;
 
@@ -58,7 +55,7 @@ function GoalForm({
 }) {
   const [title, setTitle] = useState(initialGoal?.title ?? "");
   const [targetHours, setTargetHours] = useState(
-    initialGoal ? String(initialGoal.targetHours) : ""
+    initialGoal ? String(initialGoal.targetHours) : "",
   );
   const [deadline, setDeadline] = useState(initialGoal?.deadline ?? "");
 
@@ -166,6 +163,7 @@ function GoalSummary({
 export default function AchievementsPage() {
   const { totalSeconds, goal, setGoal } = useStudyStats();
   const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const { containerRef, setItemRef, isRow } = useOverflowLayout(2);
 
   const totalHours = totalSeconds / 3600;
   const milestones = generateMilestones();
@@ -177,8 +175,14 @@ export default function AchievementsPage() {
 
   return (
     <main className="flex flex-1 flex-col items-center gap-4 p-4 sm:p-6">
-      <div className="flex w-full max-w-4xl flex-col gap-4 md:flex-row md:items-start">
-        <Card className="w-full md:flex-1">
+      <div
+        ref={containerRef}
+        className={cn(
+          "flex w-full max-w-4xl gap-4",
+          isRow ? "flex-row items-start" : "flex-col items-center",
+        )}
+      >
+        <Card ref={setItemRef(0)} className={cn("w-full", isRow && "flex-1")}>
           <CardHeader>
             <CardTitle className="text-center text-base text-muted-foreground">
               Long-Term Goal
@@ -201,7 +205,7 @@ export default function AchievementsPage() {
           </CardContent>
         </Card>
 
-        <Card className="w-full md:flex-1">
+        <Card ref={setItemRef(1)} className={cn("w-full", isRow && "flex-1")}>
           <CardHeader>
             <CardTitle className="text-center text-base text-muted-foreground">
               Milestones

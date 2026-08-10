@@ -24,6 +24,8 @@ import {
 } from "@/hooks/use-timer-settings";
 import { useAmbientPlayer } from "@/hooks/use-ambient-player";
 import { useSessionLock } from "@/hooks/use-session-lock";
+import { useOverflowLayout } from "@/hooks/use-overflow-layout";
+import { cn } from "@/lib/utils";
 // import { Separator } from "@/components/ui/separator";
 
 function formatTime(totalSeconds: number) {
@@ -57,6 +59,7 @@ export default function Home() {
   } = useStudyStats();
   const secondsElapsedRef = useRef(secondsElapsed);
   const { setIsLocked } = useSessionLock();
+  const { containerRef, setItemRef, isRow } = useOverflowLayout(2);
 
   useEffect(() => {
     secondsElapsedRef.current = secondsElapsed;
@@ -149,128 +152,143 @@ export default function Home() {
   const goalSeconds = isBreak ? breakGoalSeconds : sessionGoalSeconds;
   const progressValue = Math.min(
     ((goalSeconds - secondsElapsed) / goalSeconds) * 100,
-    100
+    100,
   );
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-4 p-4 sm:p-6">
-      <Card className="w-full max-w-lg">
-        <CardHeader className="flex items-center justify-between">
-          <CardTitle className="text-base text-muted-foreground">
-            {isBreak ? "Break Time" : "Focus Session"}
-          </CardTitle>
-          <Badge variant={isRunning ? "default" : "secondary"}>
-            {isRunning ? "In progress" : "Paused"}
-          </Badge>
-        </CardHeader>
+    <main className="flex flex-1 flex-col items-center justify-center p-4 sm:p-6">
+      <div
+        ref={containerRef}
+        className={cn(
+          "flex w-full max-w-4xl gap-4 sm:gap-6",
+          isRow
+            ? "flex-row items-start justify-center"
+            : "flex-col items-center",
+        )}
+      >
+        <Card
+          ref={setItemRef(0)}
+          className={cn("w-full max-w-lg", isRow && "max-w-md flex-1")}
+        >
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle className="text-base text-muted-foreground">
+              {isBreak ? "Break Time" : "Focus Session"}
+            </CardTitle>
+            <Badge variant={isRunning ? "default" : "secondary"}>
+              {isRunning ? "In progress" : "Paused"}
+            </Badge>
+          </CardHeader>
 
-        <CardContent className="flex flex-col items-center gap-6">
-          <span className="font-mono text-5xl font-semibold tabular-nums tracking-tight sm:text-6xl">
-            {formatTime(secondsElapsed)}
-          </span>
+          <CardContent className="flex flex-col items-center gap-6">
+            <span className="font-mono text-5xl font-semibold tabular-nums tracking-tight sm:text-6xl">
+              {formatTime(secondsElapsed)}
+            </span>
 
-          <Progress value={progressValue} className="w-full" />
+            <Progress value={progressValue} className="w-full" />
 
+            <Badge variant="outline">Session {sessionCount}</Badge>
+          </CardContent>
 
-          <Badge variant="outline">Session {sessionCount}</Badge>
-        </CardContent>
-
-        <CardFooter className="flex flex-wrap justify-center gap-3 bg-transparent p-4 pt-2 sm:gap-4">
-          {isRunning ? (
-            <Button variant="secondary" onClick={() => setIsRunning(false)}>
-              Pause
-            </Button>
-          ) : (
-            <Button onClick={handleStart}>
-              {isBreak ? "Start Break" : "Start Focus"}
-            </Button>
-          )}
-          <Button
-            variant="destructive"
-            onClick={() => {
-              resetSessionCount();
-              clearTasks();
-            }}
-          >
-            Reset Sessions
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle className="text-center text-base text-muted-foreground">
-            Task Manager
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newTaskText}
-              onChange={(e) => setNewTaskText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAddTask();
-              }}
-              placeholder="Add a task..."
-              className="flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            />
-            <Button onClick={handleAddTask}>Add</Button>
-          </div>
-
-          <ScrollArea className="h-64 rounded-md border">
-            {tasks.length === 0 ? (
-              <p className="p-4 text-center text-sm text-muted-foreground">
-                No tasks yet.
-              </p>
+          <CardFooter className="flex flex-wrap justify-center gap-3 bg-transparent p-4 pt-2 sm:gap-4">
+            {isRunning ? (
+              <Button variant="secondary" onClick={() => setIsRunning(false)}>
+                Pause
+              </Button>
             ) : (
-              <div className="flex flex-col gap-1 p-2">
-                {tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-accent"
-                  >
-                    <Checkbox
-                      checked={task.done}
-                      onCheckedChange={(checked) =>
-                        toggleTask(task.id, checked)
-                      }
-                    />
-                    <span
-                      className={
-                        task.done
-                          ? "flex-1 text-sm text-muted-foreground line-through"
-                          : "flex-1 text-sm"
-                      }
-                    >
-                      {task.text}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Remove task"
-                      onClick={() => removeTask(task.id)}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <Button onClick={handleStart}>
+                {isBreak ? "Start Break" : "Start Focus"}
+              </Button>
             )}
-          </ScrollArea>
-        </CardContent>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                resetSessionCount();
+                clearTasks();
+              }}
+            >
+              Reset Sessions
+            </Button>
+          </CardFooter>
+        </Card>
 
-        <CardFooter className="flex justify-center gap-4 bg-transparent p-4 pt-2">
-          <Button
-            variant="destructive"
-            disabled={tasks.length === 0}
-            onClick={clearTasks}
-          >
-            Clear Tasks
-          </Button>
-        </CardFooter>
-      </Card>
+        <Card
+          ref={setItemRef(1)}
+          className={cn("w-full max-w-lg", isRow && "max-w-md flex-1")}
+        >
+          <CardHeader>
+            <CardTitle className="text-center text-base text-muted-foreground">
+              Task Manager
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newTaskText}
+                onChange={(e) => setNewTaskText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddTask();
+                }}
+                placeholder="Add a task..."
+                className="flex-1 rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+              <Button onClick={handleAddTask}>Add</Button>
+            </div>
+
+            <ScrollArea className="h-64 rounded-md border">
+              {tasks.length === 0 ? (
+                <p className="p-4 text-center text-sm text-muted-foreground">
+                  No tasks yet.
+                </p>
+              ) : (
+                <div className="flex flex-col gap-1 p-2">
+                  {tasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-accent"
+                    >
+                      <Checkbox
+                        checked={task.done}
+                        onCheckedChange={(checked) =>
+                          toggleTask(task.id, checked)
+                        }
+                      />
+                      <span
+                        className={
+                          task.done
+                            ? "flex-1 text-sm text-muted-foreground line-through"
+                            : "flex-1 text-sm"
+                        }
+                      >
+                        {task.text}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Remove task"
+                        onClick={() => removeTask(task.id)}
+                      >
+                        <X className="size-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+
+          <CardFooter className="flex justify-center gap-4 bg-transparent p-4 pt-2">
+            <Button
+              variant="destructive"
+              disabled={tasks.length === 0}
+              onClick={clearTasks}
+            >
+              Clear Tasks
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </main>
   );
 }
