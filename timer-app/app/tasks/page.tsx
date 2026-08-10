@@ -143,7 +143,7 @@ export default function TasksPage() {
   );
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-4 p-6">
+    <main className="flex flex-1 flex-col items-center gap-4 p-4 sm:p-6">
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-center text-base text-muted-foreground">
@@ -152,7 +152,7 @@ export default function TasksPage() {
         </CardHeader>
 
         <CardContent className="flex flex-col gap-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}

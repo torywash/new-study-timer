@@ -60,8 +60,10 @@ export default function RootLayout({
                     driven by lib/notify.ts's plain, un-pausable setTimeout */}
                 <Toaster timeout={0}>
                   <GoalCompletionWatcher />
-                  <header className="flex items-center justify-between border-b px-6 py-4">
-                    <span className="text-lg font-semibold">Study Timer</span>
+                  <header className="flex items-center justify-between gap-2 border-b px-4 py-3 sm:px-6 sm:py-4">
+                    <span className="shrink-0 text-base font-semibold whitespace-nowrap sm:text-lg">
+                      Study Timer
+                    </span>
                     <div className="flex items-center gap-3">
                       <NavTabs />
                     </div>

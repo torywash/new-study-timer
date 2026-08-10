@@ -176,7 +176,7 @@ export default function AchievementsPage() {
   };
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-4 p-6">
+    <main className="flex flex-1 flex-col items-center gap-4 p-4 sm:p-6">
       <div className="flex w-full max-w-4xl flex-col gap-4 md:flex-row md:items-start">
         <Card className="w-full md:flex-1">
           <CardHeader>

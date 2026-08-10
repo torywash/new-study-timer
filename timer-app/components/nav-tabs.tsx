@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Award, ListTodo, Settings, Timer as TimerIcon } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -10,10 +11,10 @@ import { cn } from "@/lib/utils";
 import { useSessionLock } from "@/hooks/use-session-lock";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Timer" },
-  { href: "/tasks", label: "Tasks" },
-  { href: "/achievements", label: "Achievements" },
-  { href: "/settings", label: "Settings" },
+  { href: "/", label: "Timer", icon: TimerIcon },
+  { href: "/tasks", label: "Tasks", icon: ListTodo },
+  { href: "/achievements", label: "Achievements", icon: Award },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 type IndicatorRect = { left: number; width: number };
@@ -44,7 +45,10 @@ export function NavTabs() {
   }, [pathname]);
 
   return (
-    <nav ref={containerRef} className="relative flex items-center gap-1">
+    <nav
+      ref={containerRef}
+      className="relative flex items-center gap-0.5 sm:gap-1"
+    >
       {indicator && (
         <span
           aria-hidden="true"
@@ -56,8 +60,14 @@ export function NavTabs() {
         const isActive = pathname === item.href;
         const className = cn(
           buttonVariants({ variant: "ghost", size: "sm" }),
-          "relative z-10",
+          "relative z-10 px-2 sm:px-2.5",
           isActive && "text-secondary-foreground pointer-events-none"
+        );
+        const content = (
+          <>
+            <item.icon className="size-4 sm:hidden" />
+            <span className="hidden sm:inline">{item.label}</span>
+          </>
         );
 
         if (isLocked && !isActive) {
@@ -67,6 +77,7 @@ export function NavTabs() {
               ref={(el) => {
                 linkRefs.current[item.href] = el;
               }}
+              title={item.label}
               className={cn(className, "cursor-not-allowed opacity-50")}
               onClick={() =>
                 notify({
@@ -77,7 +88,7 @@ export function NavTabs() {
                 })
               }
             >
-              {item.label}
+              {content}
             </span>
           );
         }
@@ -90,9 +101,10 @@ export function NavTabs() {
               linkRefs.current[item.href] = el;
             }}
             aria-current={isActive ? "page" : undefined}
+            title={item.label}
             className={className}
           >
-            {item.label}
+            {content}
           </Link>
         );
       })}

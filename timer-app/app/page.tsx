@@ -153,7 +153,7 @@ export default function Home() {
   );
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-4 p-6">
+    <main className="flex flex-1 flex-col items-center justify-center gap-4 p-4 sm:p-6">
       <Card className="w-full max-w-lg">
         <CardHeader className="flex items-center justify-between">
           <CardTitle className="text-base text-muted-foreground">
@@ -165,7 +165,7 @@ export default function Home() {
         </CardHeader>
 
         <CardContent className="flex flex-col items-center gap-6">
-          <span className="font-mono text-6xl font-semibold tabular-nums tracking-tight">
+          <span className="font-mono text-5xl font-semibold tabular-nums tracking-tight sm:text-6xl">
             {formatTime(secondsElapsed)}
           </span>
 
@@ -175,7 +175,7 @@ export default function Home() {
           <Badge variant="outline">Session {sessionCount}</Badge>
         </CardContent>
 
-        <CardFooter className="flex justify-center gap-4 bg-transparent p-4 pt-2">
+        <CardFooter className="flex flex-wrap justify-center gap-3 bg-transparent p-4 pt-2 sm:gap-4">
           {isRunning ? (
             <Button variant="secondary" onClick={() => setIsRunning(false)}>
               Pause

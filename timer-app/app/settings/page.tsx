@@ -268,7 +268,7 @@ export default function SettingsPage() {
   const breakMinutesLabel = breakMinutes.toFixed(1).replace(/\.0$/, "");
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-4 p-6">
+    <main className="flex flex-1 flex-col items-center gap-4 p-4 sm:p-6">
       <div className="flex w-full max-w-lg flex-col gap-4">
         <Card>
           <CardHeader>
