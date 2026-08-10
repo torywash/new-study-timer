@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/toast";
 import { TasksProvider } from "@/hooks/use-tasks";
 import { StudyStatsProvider } from "@/hooks/use-study-stats";
 import { TimerSettingsProvider } from "@/hooks/use-timer-settings";
+import { SessionLockProvider } from "@/hooks/use-session-lock";
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
@@ -53,16 +54,18 @@ export default function RootLayout({
         <StudyStatsProvider>
           <TasksProvider>
             <TimerSettingsProvider>
-              <Toaster>
-                <GoalCompletionWatcher />
-                <header className="flex items-center justify-between border-b px-6 py-4">
-                  <span className="text-lg font-semibold">Study Timer</span>
-                  <div className="flex items-center gap-3">
-                    <NavTabs />
-                  </div>
-                </header>
-                <ViewTransition>{children}</ViewTransition>
-              </Toaster>
+              <SessionLockProvider>
+                <Toaster timeout={5000}>
+                  <GoalCompletionWatcher />
+                  <header className="flex items-center justify-between border-b px-6 py-4">
+                    <span className="text-lg font-semibold">Study Timer</span>
+                    <div className="flex items-center gap-3">
+                      <NavTabs />
+                    </div>
+                  </header>
+                  <ViewTransition>{children}</ViewTransition>
+                </Toaster>
+              </SessionLockProvider>
             </TimerSettingsProvider>
           </TasksProvider>
         </StudyStatsProvider>

@@ -83,8 +83,13 @@ function fadeAudioElement(
 // changes apply live without restarting playback; switching mode, noise
 // type, or file restarts it (with its own fade in/out).
 export function useAmbientPlayer(isPlaying: boolean) {
-  const { ambientEnabled, ambientMode, noiseType, ambientFile, volume } =
-    useTimerSettings();
+  const {
+    ambientEnabled,
+    ambientMode,
+    noiseType,
+    ambientFile,
+    ambientVolume,
+  } = useTimerSettings();
 
   const gainRef = useRef<GainNode | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
@@ -93,7 +98,7 @@ export function useAmbientPlayer(isPlaying: boolean) {
   const shouldPlay = isPlaying && ambientEnabled;
 
   useEffect(() => {
-    const target = volumeToGain(volume);
+    const target = volumeToGain(ambientVolume);
     if (gainRef.current) {
       const ctx = gainRef.current.context;
       gainRef.current.gain.cancelScheduledValues(ctx.currentTime);
@@ -103,7 +108,7 @@ export function useAmbientPlayer(isPlaying: boolean) {
     if (audioElRef.current && !cancelFadeRef.current) {
       audioElRef.current.volume = target;
     }
-  }, [volume]);
+  }, [ambientVolume]);
 
   useEffect(() => {
     if (!shouldPlay || ambientMode !== "generated") return;
@@ -114,7 +119,7 @@ export function useAmbientPlayer(isPlaying: boolean) {
     source.loop = true;
 
     const gain = ctx.createGain();
-    const target = volumeToGain(volume);
+    const target = volumeToGain(ambientVolume);
     gain.gain.setValueAtTime(0, ctx.currentTime);
     gain.gain.linearRampToValueAtTime(target, ctx.currentTime + FADE_SECONDS);
     gainRef.current = gain;
@@ -136,8 +141,9 @@ export function useAmbientPlayer(isPlaying: boolean) {
         ctx.close();
       }, FADE_SECONDS * 1000);
     };
-    // volume is intentionally excluded — the separate effect above updates
-    // gain.value live so changing it doesn't restart (and click/pop) playback
+    // ambientVolume is intentionally excluded — the separate effect above
+    // updates gain.value live so changing it doesn't restart (and click/pop)
+    // playback
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldPlay, ambientMode, noiseType]);
 
@@ -156,7 +162,7 @@ export function useAmbientPlayer(isPlaying: boolean) {
     });
 
     cancelFadeRef.current?.();
-    cancelFadeRef.current = fadeAudioElement(audio, volumeToGain(volume), () => {
+    cancelFadeRef.current = fadeAudioElement(audio, volumeToGain(ambientVolume), () => {
       cancelFadeRef.current = null;
     });
 

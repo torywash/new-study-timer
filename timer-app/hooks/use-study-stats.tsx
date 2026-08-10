@@ -21,6 +21,9 @@ const STUDY_STATS_STORAGE_KEY = "study-stats";
 type StudyStatsContextValue = {
   totalSeconds: number;
   addStudySeconds: (seconds: number) => void;
+  sessionCount: number;
+  incrementSessionCount: () => void;
+  resetSessionCount: () => void;
   goal: StudyGoal | null;
   setGoal: (goal: StudyGoal) => void;
   clearGoal: () => void;
@@ -33,6 +36,7 @@ const StudyStatsContext = createContext<StudyStatsContextValue | null>(null);
 // own copy that independently loads from and saves to localStorage.
 export function StudyStatsProvider({ children }: { children: ReactNode }) {
   const [totalSeconds, setTotalSeconds] = useState(0);
+  const [sessionCount, setSessionCount] = useState(0);
   const [goal, setGoalState] = useState<StudyGoal | null>(null);
   const statsLoadedRef = useRef(false);
 
@@ -42,11 +46,15 @@ export function StudyStatsProvider({ children }: { children: ReactNode }) {
       try {
         const parsed = JSON.parse(stored) as {
           totalSeconds?: number;
+          sessionCount?: number;
           goal?: StudyGoal | null;
         };
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setTotalSeconds(
           typeof parsed.totalSeconds === "number" ? parsed.totalSeconds : 0
+        );
+        setSessionCount(
+          typeof parsed.sessionCount === "number" ? parsed.sessionCount : 0
         );
         setGoalState(parsed.goal ?? null);
       } catch {
@@ -60,15 +68,23 @@ export function StudyStatsProvider({ children }: { children: ReactNode }) {
     if (!statsLoadedRef.current) return;
     localStorage.setItem(
       STUDY_STATS_STORAGE_KEY,
-      JSON.stringify({ totalSeconds, goal })
+      JSON.stringify({ totalSeconds, sessionCount, goal })
     );
-  }, [totalSeconds, goal]);
+  }, [totalSeconds, sessionCount, goal]);
 
   // Stable identity (empty deps + functional setState) is required: this is
   // called once per second from the Timer page's interval, and a changing
   // identity would tear down and rebuild that interval every tick.
   const addStudySeconds = useCallback((seconds: number) => {
     setTotalSeconds((prev) => prev + seconds);
+  }, []);
+
+  const incrementSessionCount = useCallback(() => {
+    setSessionCount((prev) => prev + 1);
+  }, []);
+
+  const resetSessionCount = useCallback(() => {
+    setSessionCount(0);
   }, []);
 
   const setGoal = useCallback((next: StudyGoal) => {
@@ -81,7 +97,16 @@ export function StudyStatsProvider({ children }: { children: ReactNode }) {
 
   return (
     <StudyStatsContext.Provider
-      value={{ totalSeconds, addStudySeconds, goal, setGoal, clearGoal }}
+      value={{
+        totalSeconds,
+        addStudySeconds,
+        sessionCount,
+        incrementSessionCount,
+        resetSessionCount,
+        goal,
+        setGoal,
+        clearGoal,
+      }}
     >
       {children}
     </StudyStatsContext.Provider>

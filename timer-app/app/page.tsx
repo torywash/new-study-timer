@@ -18,8 +18,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/components/ui/toast";
 import { useTasks } from "@/hooks/use-tasks";
 import { useStudyStats } from "@/hooks/use-study-stats";
-import { useTimerSettings, volumeToGain } from "@/hooks/use-timer-settings";
+import {
+  useTimerSettings,
+  volumeToNotificationGain,
+} from "@/hooks/use-timer-settings";
 import { useAmbientPlayer } from "@/hooks/use-ambient-player";
+import { useSessionLock } from "@/hooks/use-session-lock";
 // import { Separator } from "@/components/ui/separator";
 
 function formatTime(totalSeconds: number) {
@@ -33,25 +37,44 @@ function formatTime(totalSeconds: number) {
 }
 
 export default function Home() {
-  const { focusMinutes, breakMinutes, soundEnabled, volume } =
+  const { focusMinutes, breakMinutes, soundEnabled, notificationVolume } =
     useTimerSettings();
-  const sessionGoalSeconds = focusMinutes * 60;
-  const breakGoalSeconds = breakMinutes * 60;
+  // TEMP TESTING OVERRIDE — bypasses Settings entirely (5-60 min floor and
+  // the break = focus/5 derivation) for a fast 3s/3s cycle. Revert to the
+  // two lines below once done testing:
+  // const sessionGoalSeconds = focusMinutes * 60;
+  // const breakGoalSeconds = breakMinutes * 60;
+  const sessionGoalSeconds = 3;
+  const breakGoalSeconds = 3;
 
   const [secondsElapsed, setSecondsElapsed] = useState(sessionGoalSeconds);
   const [isRunning, setIsRunning] = useState(false);
-  const [sessionCount, setSessionCount] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isBreak, setIsBreak] = useState(false);
   const { tasks, addTask, toggleTask, removeTask, clearTasks } = useTasks();
   const [newTaskText, setNewTaskText] = useState("");
-  const { addStudySeconds } = useStudyStats();
+  const {
+    addStudySeconds,
+    sessionCount,
+    incrementSessionCount,
+    resetSessionCount,
+  } = useStudyStats();
   const secondsElapsedRef = useRef(secondsElapsed);
+  const { setIsLocked } = useSessionLock();
 
   useEffect(() => {
     secondsElapsedRef.current = secondsElapsed;
   }, [secondsElapsed]);
+
+  // Mirror isRunning into the shared session lock so NavTabs (which lives in
+  // the persistent layout, not this page) can disable the other tabs while a
+  // session is actively running. The cleanup is a safety net so the lock
+  // can't get stuck on if this page ever unmounts while still running.
+  useEffect(() => {
+    setIsLocked(isRunning);
+    return () => setIsLocked(false);
+  }, [isRunning, setIsLocked]);
 
   // Resync the displayed countdown when the Focus/Break duration settings
   // change (loaded from localStorage after mount, or edited on the Settings
@@ -72,8 +95,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volumeToGain(volume);
-  }, [volume]);
+    if (audioRef.current)
+      audioRef.current.volume = volumeToNotificationGain(notificationVolume);
+  }, [notificationVolume]);
 
   useAmbientPlayer(isRunning);
 
@@ -102,7 +126,7 @@ export default function Home() {
     setIsRunning(false);
     if (isBreak) {
       // a break just finished, so a full study/break cycle is complete
-      setSessionCount((count) => count + 1);
+      incrementSessionCount();
     }
     setIsBreak((prev) => !prev);
     if (soundEnabled) audioRef.current?.play();
@@ -113,7 +137,7 @@ export default function Home() {
         : "Nice work — time for a break.",
       type: "success",
     });
-  }, [secondsElapsed, isRunning, isBreak, soundEnabled]);
+  }, [secondsElapsed, isRunning, isBreak, soundEnabled, incrementSessionCount]);
 
   const handleStart = () => {
     if (secondsElapsed === 0) {
@@ -169,7 +193,7 @@ export default function Home() {
           <Button
             variant="destructive"
             onClick={() => {
-              setSessionCount(0);
+              resetSessionCount();
               clearTasks();
             }}
           >

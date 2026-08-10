@@ -198,19 +198,64 @@ const NOISE_LABELS: Record<NoiseType, string> = {
   pink: "Pink Noise",
 };
 
+function VolumeSlider({
+  id,
+  label,
+  value,
+  onCommit,
+}: {
+  id: string;
+  label: string;
+  value: number;
+  onCommit: (value: number) => void;
+}) {
+  const [liveValue, setLiveValue] = useState(value);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id}>{label}</Label>
+        <span className="text-sm text-muted-foreground tabular-nums">
+          {liveValue}%
+        </span>
+      </div>
+      <Slider
+        id={id}
+        value={[liveValue]}
+        onValueChange={(next) =>
+          setLiveValue(Array.isArray(next) ? next[0] : next)
+        }
+        onValueCommitted={(next) => {
+          const committed = Array.isArray(next) ? next[0] : next;
+          onCommit(committed);
+          toast.add({
+            title: "Settings updated",
+            description: `${label} set to ${committed}%.`,
+          });
+        }}
+        min={0}
+        max={100}
+        step={1}
+      />
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const {
     focusMinutes,
     breakMinutes,
     soundEnabled,
-    volume,
+    ambientVolume,
+    notificationVolume,
     ambientEnabled,
     ambientMode,
     noiseType,
     ambientFile,
     setFocusMinutes,
     setSoundEnabled,
-    setVolume,
+    setAmbientVolume,
+    setNotificationVolume,
     setAmbientEnabled,
     setAmbientMode,
     setNoiseType,
@@ -268,31 +313,12 @@ export default function SettingsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="volume-slider">Volume</Label>
-                <span className="text-sm text-muted-foreground tabular-nums">
-                  {volume}%
-                </span>
-              </div>
-              <Slider
-                id="volume-slider"
-                value={[volume]}
-                onValueChange={(next) =>
-                  setVolume(Array.isArray(next) ? next[0] : next)
-                }
-                onValueCommitted={(next) => {
-                  const value = Array.isArray(next) ? next[0] : next;
-                  toast.add({
-                    title: "Settings updated",
-                    description: `Volume set to ${value}%.`,
-                  });
-                }}
-                min={0}
-                max={100}
-                step={1}
-              />
-            </div>
+            <VolumeSlider
+              id="notification-volume-slider"
+              label="Notification Volume"
+              value={notificationVolume}
+              onCommit={setNotificationVolume}
+            />
 
             <div className="flex items-center justify-between">
               <Label htmlFor="sound-enabled">
@@ -328,6 +354,13 @@ export default function SettingsPage() {
 
             {ambientEnabled && (
               <div className="flex flex-col gap-3 rounded-md border p-3">
+                <VolumeSlider
+                  id="ambient-volume-slider"
+                  label="Ambient Volume"
+                  value={ambientVolume}
+                  onCommit={setAmbientVolume}
+                />
+
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="ambient-mode">Source</Label>
                   <Select

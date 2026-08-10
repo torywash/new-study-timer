@@ -19,12 +19,22 @@ export const MIN_FOCUS_MINUTES = 5;
 export const MAX_FOCUS_MINUTES = 60;
 
 // Raw linear gain (volume / 100 straight to 0-1) felt far too loud even at
-// low slider percentages, so the effective output is capped at half of full
-// scale — the 0-100 slider still reads as a normal percentage, this just
-// scales what it actually maps to in terms of audio gain/volume.
-const MAX_VOLUME_GAIN = 0.5;
+// low slider percentages, so continuous ambient background sound is capped
+// well below full scale — the 0-100 slider still reads as a normal
+// percentage, this just scales what it actually maps to in terms of audio
+// gain. The one-shot session-end chime isn't continuous background noise
+// (no listening-fatigue concern the same way), so it gets its own, higher
+// ceiling instead of sharing the ambient cap. Each also has its own
+// independent slider/setting so raising one never affects the other.
+const AMBIENT_MAX_VOLUME_GAIN = 0.25;
+const NOTIFICATION_MAX_VOLUME_GAIN = 1;
+
 export function volumeToGain(volume: number): number {
-  return (volume / 100) * MAX_VOLUME_GAIN;
+  return (volume / 100) * AMBIENT_MAX_VOLUME_GAIN;
+}
+
+export function volumeToNotificationGain(volume: number): number {
+  return (volume / 100) * NOTIFICATION_MAX_VOLUME_GAIN;
 }
 
 export type AmbientMode = "generated" | "file";
@@ -34,7 +44,8 @@ type TimerSettingsContextValue = {
   focusMinutes: number;
   breakMinutes: number; // derived: always 1/5 of focusMinutes
   soundEnabled: boolean;
-  volume: number; // 0-100
+  ambientVolume: number; // 0-100
+  notificationVolume: number; // 0-100
   ambientEnabled: boolean;
   ambientMode: AmbientMode;
   noiseType: NoiseType;
@@ -44,7 +55,8 @@ type TimerSettingsContextValue = {
   ambientFile: File | null;
   setFocusMinutes: (minutes: number) => void;
   setSoundEnabled: (enabled: boolean) => void;
-  setVolume: (volume: number) => void;
+  setAmbientVolume: (volume: number) => void;
+  setNotificationVolume: (volume: number) => void;
   setAmbientEnabled: (enabled: boolean) => void;
   setAmbientMode: (mode: AmbientMode) => void;
   setNoiseType: (type: NoiseType) => void;
@@ -60,7 +72,9 @@ const TimerSettingsContext =
 export function TimerSettingsProvider({ children }: { children: ReactNode }) {
   const [focusMinutes, setFocusMinutesState] = useState(DEFAULT_FOCUS_MINUTES);
   const [soundEnabled, setSoundEnabledState] = useState(true);
-  const [volume, setVolumeState] = useState(DEFAULT_VOLUME);
+  const [ambientVolume, setAmbientVolumeState] = useState(DEFAULT_VOLUME);
+  const [notificationVolume, setNotificationVolumeState] =
+    useState(DEFAULT_VOLUME);
   const [ambientEnabled, setAmbientEnabledState] = useState(false);
   const [ambientMode, setAmbientModeState] = useState<AmbientMode>("generated");
   const [noiseType, setNoiseTypeState] = useState<NoiseType>("white");
@@ -74,7 +88,8 @@ export function TimerSettingsProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(stored) as {
           focusMinutes?: number;
           soundEnabled?: boolean;
-          volume?: number;
+          ambientVolume?: number;
+          notificationVolume?: number;
           ambientEnabled?: boolean;
           ambientMode?: AmbientMode;
           noiseType?: NoiseType;
@@ -90,11 +105,18 @@ export function TimerSettingsProvider({ children }: { children: ReactNode }) {
         setSoundEnabledState(
           typeof parsed.soundEnabled === "boolean" ? parsed.soundEnabled : true
         );
-        setVolumeState(
-          typeof parsed.volume === "number" &&
-            parsed.volume >= 0 &&
-            parsed.volume <= 100
-            ? parsed.volume
+        setAmbientVolumeState(
+          typeof parsed.ambientVolume === "number" &&
+            parsed.ambientVolume >= 0 &&
+            parsed.ambientVolume <= 100
+            ? parsed.ambientVolume
+            : DEFAULT_VOLUME
+        );
+        setNotificationVolumeState(
+          typeof parsed.notificationVolume === "number" &&
+            parsed.notificationVolume >= 0 &&
+            parsed.notificationVolume <= 100
+            ? parsed.notificationVolume
             : DEFAULT_VOLUME
         );
         setAmbientEnabledState(
@@ -124,13 +146,22 @@ export function TimerSettingsProvider({ children }: { children: ReactNode }) {
       JSON.stringify({
         focusMinutes,
         soundEnabled,
-        volume,
+        ambientVolume,
+        notificationVolume,
         ambientEnabled,
         ambientMode,
         noiseType,
       })
     );
-  }, [focusMinutes, soundEnabled, volume, ambientEnabled, ambientMode, noiseType]);
+  }, [
+    focusMinutes,
+    soundEnabled,
+    ambientVolume,
+    notificationVolume,
+    ambientEnabled,
+    ambientMode,
+    noiseType,
+  ]);
 
   const setFocusMinutes = (minutes: number) => {
     if (minutes >= MIN_FOCUS_MINUTES && minutes <= MAX_FOCUS_MINUTES) {
@@ -142,8 +173,12 @@ export function TimerSettingsProvider({ children }: { children: ReactNode }) {
     setSoundEnabledState(enabled);
   };
 
-  const setVolume = (next: number) => {
-    setVolumeState(Math.min(100, Math.max(0, next)));
+  const setAmbientVolume = (next: number) => {
+    setAmbientVolumeState(Math.min(100, Math.max(0, next)));
+  };
+
+  const setNotificationVolume = (next: number) => {
+    setNotificationVolumeState(Math.min(100, Math.max(0, next)));
   };
 
   const setAmbientEnabled = (enabled: boolean) => {
@@ -168,14 +203,16 @@ export function TimerSettingsProvider({ children }: { children: ReactNode }) {
         focusMinutes,
         breakMinutes: focusMinutes * BREAK_RATIO,
         soundEnabled,
-        volume,
+        ambientVolume,
+        notificationVolume,
         ambientEnabled,
         ambientMode,
         noiseType,
         ambientFile,
         setFocusMinutes,
         setSoundEnabled,
-        setVolume,
+        setAmbientVolume,
+        setNotificationVolume,
         setAmbientEnabled,
         setAmbientMode,
         setNoiseType,

@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
+import { useSessionLock } from "@/hooks/use-session-lock";
 
 const NAV_ITEMS = [
   { href: "/", label: "Timer" },
@@ -18,8 +20,9 @@ type IndicatorRect = { left: number; width: number };
 
 export function NavTabs() {
   const pathname = usePathname();
+  const { isLocked } = useSessionLock();
   const containerRef = useRef<HTMLElement>(null);
-  const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+  const linkRefs = useRef<Record<string, HTMLElement | null>>({});
   const [indicator, setIndicator] = useState<IndicatorRect | null>(null);
 
   // Measure the active tab's own position/width and slide a plain
@@ -51,6 +54,34 @@ export function NavTabs() {
       )}
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
+        const className = cn(
+          buttonVariants({ variant: "ghost", size: "sm" }),
+          "relative z-10",
+          isActive && "text-secondary-foreground pointer-events-none"
+        );
+
+        if (isLocked && !isActive) {
+          return (
+            <span
+              key={item.href}
+              ref={(el) => {
+                linkRefs.current[item.href] = el;
+              }}
+              className={cn(className, "cursor-not-allowed opacity-50")}
+              onClick={() =>
+                toast.add({
+                  title: "Tab locked",
+                  description:
+                    "Finish or pause your session to switch tabs.",
+                  type: "warning",
+                })
+              }
+            >
+              {item.label}
+            </span>
+          );
+        }
+
         return (
           <Link
             key={item.href}
@@ -59,11 +90,7 @@ export function NavTabs() {
               linkRefs.current[item.href] = el;
             }}
             aria-current={isActive ? "page" : undefined}
-            className={cn(
-              buttonVariants({ variant: "ghost", size: "sm" }),
-              "relative z-10",
-              isActive && "text-secondary-foreground pointer-events-none"
-            )}
+            className={className}
           >
             {item.label}
           </Link>
