@@ -1,7 +1,7 @@
 "use client";
 
 import { Award, Pencil } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -164,6 +164,26 @@ export default function AchievementsPage() {
   const { totalSeconds, goal, setGoal } = useStudyStats();
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const { containerRef, setItemRef, isRow } = useOverflowLayout(2);
+  const goalCardRef = useRef<HTMLElement | null>(null);
+  const [goalHeight, setGoalHeight] = useState<number | null>(null);
+
+  // The Milestones card mirrors the Long-Term Goal card's rendered height
+  // (see below) rather than sizing to its own content — its list is
+  // effectively unbounded (40 milestones), so it needs an external height
+  // to match against.
+  useLayoutEffect(() => {
+    const el = goalCardRef.current;
+    if (!el) return;
+
+    // getBoundingClientRect (not the observer entry's contentRect, which
+    // excludes padding/border) so this matches the Card's own border-box
+    // height — the box `maxHeight` below is measured against.
+    const observer = new ResizeObserver(() => {
+      setGoalHeight(el.getBoundingClientRect().height);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const totalHours = totalSeconds / 3600;
   const milestones = generateMilestones();
@@ -174,15 +194,21 @@ export default function AchievementsPage() {
   };
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-4 p-4 sm:p-6">
+    <main className="flex min-h-0 flex-1 flex-col items-center gap-4 overflow-hidden p-4 sm:overflow-visible sm:p-6">
       <div
         ref={containerRef}
         className={cn(
-          "flex w-full max-w-4xl gap-4",
+          "flex min-h-0 w-full max-w-4xl gap-4 max-sm:flex-1",
           isRow ? "flex-row items-start" : "flex-col items-center",
         )}
       >
-        <Card ref={setItemRef(0)} className={cn("w-full", isRow && "flex-1")}>
+        <Card
+          ref={(el) => {
+            setItemRef(0)(el);
+            goalCardRef.current = el;
+          }}
+          className={cn("w-full", isRow ? "flex-1" : "max-sm:shrink-0")}
+        >
           <CardHeader>
             <CardTitle className="text-center text-base text-muted-foreground">
               Long-Term Goal
@@ -205,18 +231,22 @@ export default function AchievementsPage() {
           </CardContent>
         </Card>
 
-        <Card ref={setItemRef(1)} className={cn("w-full", isRow && "flex-1")}>
+        <Card
+          ref={setItemRef(1)}
+          className="flex min-h-0 w-full flex-1 flex-col"
+          style={goalHeight ? { maxHeight: goalHeight } : undefined}
+        >
           <CardHeader>
             <CardTitle className="text-center text-base text-muted-foreground">
               Milestones
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+          <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
             <p className="text-center text-2xl font-semibold tabular-nums">
               {totalHours.toFixed(1)} hours studied
             </p>
 
-            <ScrollArea className="h-64 rounded-md border">
+            <ScrollArea className="min-h-0 flex-1 rounded-md border">
               <div className="flex flex-col gap-1 p-2">
                 {milestones.map((threshold) => {
                   const earned = totalHours >= threshold;

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useTasks } from "@/hooks/use-tasks";
 
@@ -143,16 +144,16 @@ export default function TasksPage() {
   );
 
   return (
-    <main className="flex flex-1 flex-col items-center gap-4 p-4 sm:p-6">
-      <Card className="w-full max-w-2xl">
+    <main className="flex min-h-0 flex-1 flex-col items-center gap-4 overflow-hidden p-4 sm:overflow-visible sm:p-6">
+      <Card className="flex min-h-0 w-full max-w-2xl flex-1 flex-col">
         <CardHeader>
           <CardTitle className="text-center text-base text-muted-foreground">
             Task Timeline
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2 sm:flex-row">
+        <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -173,80 +174,82 @@ export default function TasksPage() {
             />
           </div>
 
-          {filteredTasks.length === 0 ? (
-            <p className="p-4 text-center text-sm text-muted-foreground">
-              {tasks.length === 0
-                ? "No tasks yet."
-                : "No tasks match your search."}
-            </p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {filteredTasks.map((task) => (
-                <Card key={task.id} size="sm">
-                  <CardContent className="flex items-start gap-3">
-                    <Checkbox
-                      className="mt-1"
-                      checked={task.done}
-                      onCheckedChange={(checked) =>
-                        toggleTask(task.id, checked)
-                      }
-                    />
+          <ScrollArea className="min-h-0 flex-1">
+            {filteredTasks.length === 0 ? (
+              <p className="p-4 text-center text-sm text-muted-foreground">
+                {tasks.length === 0
+                  ? "No tasks yet."
+                  : "No tasks match your search."}
+              </p>
+            ) : (
+              <div className="flex flex-col gap-3 pb-1">
+                {filteredTasks.map((task) => (
+                  <Card key={task.id} size="sm">
+                    <CardContent className="flex items-start gap-3">
+                      <Checkbox
+                        className="mt-1"
+                        checked={task.done}
+                        onCheckedChange={(checked) =>
+                          toggleTask(task.id, checked)
+                        }
+                      />
 
-                    <div className="flex flex-1 flex-col gap-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          className={
-                            task.done
-                              ? "font-medium text-muted-foreground line-through"
-                              : "font-medium"
-                          }
-                        >
-                          {task.text}
-                        </span>
-                        {formatDueDate(task.dueDate) && (
-                          <Badge variant="outline">
-                            {formatDueDate(task.dueDate)}
-                          </Badge>
+                      <div className="flex flex-1 flex-col gap-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={
+                              task.done
+                                ? "font-medium text-muted-foreground line-through"
+                                : "font-medium"
+                            }
+                          >
+                            {task.text}
+                          </span>
+                          {formatDueDate(task.dueDate) && (
+                            <Badge variant="outline">
+                              {formatDueDate(task.dueDate)}
+                            </Badge>
+                          )}
+                        </div>
+                        {task.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {task.description}
+                          </p>
                         )}
                       </div>
-                      {task.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {task.description}
-                        </p>
-                      )}
-                    </div>
 
-                    <TaskFormDialog
-                      trigger={
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Edit task"
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                      }
-                      heading="Edit Task"
-                      submitLabel="Save Changes"
-                      initialTitle={task.text}
-                      initialDescription={task.description}
-                      initialDueDate={task.dueDate}
-                      onSubmit={(values) => updateTask(task.id, values)}
-                    />
+                      <TaskFormDialog
+                        trigger={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Edit task"
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                        }
+                        heading="Edit Task"
+                        submitLabel="Save Changes"
+                        initialTitle={task.text}
+                        initialDescription={task.description}
+                        initialDueDate={task.dueDate}
+                        onSubmit={(values) => updateTask(task.id, values)}
+                      />
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Remove task"
-                      onClick={() => removeTask(task.id)}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Remove task"
+                        onClick={() => removeTask(task.id)}
+                      >
+                        <X className="size-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
         </CardContent>
       </Card>
     </main>

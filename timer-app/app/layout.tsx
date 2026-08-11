@@ -45,7 +45,7 @@ export default function RootLayout({
       className={`${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex h-dvh flex-col overflow-hidden sm:h-auto sm:min-h-dvh sm:overflow-visible">
         <Script
           id="theme-init"
           strategy="beforeInteractive"
@@ -60,7 +60,7 @@ export default function RootLayout({
                     driven by lib/notify.ts's plain, un-pausable setTimeout */}
                 <Toaster timeout={0}>
                   <GoalCompletionWatcher />
-                  <header className="flex items-center justify-between gap-2 border-b px-4 py-3 sm:px-6 sm:py-4">
+                  <header className="flex shrink-0 items-center justify-between gap-2 border-b px-4 py-3 sm:px-6 sm:py-4">
                     <span className="shrink-0 text-base font-semibold whitespace-nowrap sm:text-lg">
                       Study Timer
                     </span>

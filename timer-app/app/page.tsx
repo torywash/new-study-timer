@@ -156,11 +156,11 @@ export default function Home() {
   );
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center p-4 sm:p-6">
+    <main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-4 sm:overflow-visible sm:p-6">
       <div
         ref={containerRef}
         className={cn(
-          "flex w-full max-w-4xl gap-4 sm:gap-6",
+          "flex min-h-0 w-full max-w-4xl gap-4 sm:gap-6 max-sm:flex-1",
           isRow
             ? "flex-row items-stretch justify-center"
             : "flex-col items-center",
@@ -168,7 +168,10 @@ export default function Home() {
       >
         <Card
           ref={setItemRef(0)}
-          className={cn("w-full max-w-lg", isRow && "max-w-md flex-1")}
+          className={cn(
+            "w-full max-w-lg",
+            isRow ? "max-w-md flex-1" : "max-sm:shrink-0",
+          )}
         >
           <CardHeader className="flex items-center justify-between">
             <CardTitle className="text-base text-muted-foreground">
@@ -179,8 +182,8 @@ export default function Home() {
             </Badge>
           </CardHeader>
 
-          <CardContent className="flex flex-1 flex-col items-center justify-center gap-6">
-            <span className="font-mono text-5xl font-semibold tabular-nums tracking-tight sm:text-6xl">
+          <CardContent className="flex flex-1 flex-col items-center justify-center gap-4 sm:gap-6">
+            <span className="font-mono text-4xl font-semibold tabular-nums tracking-tight sm:text-6xl">
               {formatTime(secondsElapsed)}
             </span>
 
@@ -213,7 +216,10 @@ export default function Home() {
 
         <Card
           ref={setItemRef(1)}
-          className={cn("w-full max-w-lg", isRow && "max-w-md flex-1")}
+          className={cn(
+            "w-full max-w-lg max-sm:min-h-0 max-sm:flex-1",
+            isRow && "max-w-md flex-1",
+          )}
         >
           <CardHeader>
             <CardTitle className="text-center text-base text-muted-foreground">
@@ -221,8 +227,8 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="flex flex-1 flex-col gap-4">
-            <div className="flex gap-2">
+          <CardContent className="flex flex-1 flex-col gap-4 max-sm:min-h-0">
+            <div className="flex shrink-0 gap-2">
               <input
                 type="text"
                 value={newTaskText}
@@ -236,7 +242,7 @@ export default function Home() {
               <Button onClick={handleAddTask}>Add</Button>
             </div>
 
-            <ScrollArea className="h-64 rounded-md border">
+            <ScrollArea className="rounded-md border max-sm:min-h-0 max-sm:max-h-64 max-sm:flex-1 sm:h-64">
               {tasks.length === 0 ? (
                 <p className="p-4 text-center text-sm text-muted-foreground">
                   No tasks yet.
