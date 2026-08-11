@@ -48,13 +48,26 @@ export function useOverflowLayout(itemCount: number) {
 
     measure();
 
+    // On phones, rotating the device fires `resize` while the browser's
+    // own UI (address bar collapsing/expanding, safe-area insets) is still
+    // animating, so innerWidth/innerHeight can be momentarily stale. Wait a
+    // frame after orientation-driven events before re-measuring so the row
+    // vs. stacked decision reflects the settled viewport.
+    const measureNextFrame = () => {
+      requestAnimationFrame(measure);
+    };
+
     const resizeObserver = new ResizeObserver(measure);
     itemRefs.current.forEach((el) => el && resizeObserver.observe(el));
     window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measureNextFrame);
+    screen.orientation?.addEventListener?.("change", measureNextFrame);
 
     return () => {
       resizeObserver.disconnect();
       window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measureNextFrame);
+      screen.orientation?.removeEventListener?.("change", measureNextFrame);
     };
   }, [itemCount]);
 

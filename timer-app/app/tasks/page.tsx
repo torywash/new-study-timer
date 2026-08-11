@@ -85,7 +85,7 @@ function TaskFormDialog({
       <DialogTrigger render={trigger} />
 
       <DialogContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-4">
           <DialogHeader>
             <DialogTitle>{heading}</DialogTitle>
           </DialogHeader>
